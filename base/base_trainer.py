@@ -235,8 +235,8 @@ class BaseTrainer:
         epoch : int
             The current epoch.
 
-        save_best : bool
-            If True, the saved checkpoint is renamed to "model_best.pth"
+        save_best : bool, optional
+            If True, the saved checkpoint is renamed to "model_best.pth" (default is False).
         """
         arch: str = type(self.model).__name__
         state: Dict[str, Any] = {
@@ -258,9 +258,12 @@ class BaseTrainer:
 
     def _resume_checkpoint(self, resume_path: Path) -> None:
         """
-        Resume from saved checkpoints
+        Resume from saved checkpoints.
 
-        :param resume_path: Checkpoint path to be resumed
+        Parameters
+        ----------
+        resume_path : pathlib.Path
+            File path of the checkpoint to resume form.
         """
         resume_path: str = str(resume_path)
         self.logger.info("Loading checkpoint: {} ...".format(resume_path))

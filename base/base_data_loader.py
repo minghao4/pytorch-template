@@ -28,8 +28,8 @@ class BaseDataLoader(DataLoader):
     num_workers : int
         Number of subprocesses to use for data loading.
 
-    collate_fn: typing.Callable
-        A function to merge a list of samples to form a mini-batch.
+    collate_fn: typing.Callable, optional
+        A function to merge a list of samples to form a mini-batch (default is default_collate).
 
     Methods
     -------
