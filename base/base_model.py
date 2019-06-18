@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Iterable
+from typing import Iterable, NoReturn, Union
 
 import numpy as np
 from torch import Tensor
@@ -12,11 +12,9 @@ class BaseModel(Module):
     """
 
     @abstractmethod
-    def forward(self, *inputs: Tensor) -> Tensor:
+    def forward(self, *inputs: Tensor) -> Union[NoReturn, Tensor]:
         """
-        TODO: check if type-hinting is correct for abstractmethod.
-
-        Forward pass logic. If not implemented, raise `NotImplementedError`.
+        Forward pass logic abstract method.
 
         Parameters
         ----------
@@ -27,6 +25,11 @@ class BaseModel(Module):
         -------
         torch.Tensor
             The model output tensor.
+
+        Raises
+        ------
+        NotImplementedError
+            If not implemented in child class.
         """
         raise NotImplementedError
 
