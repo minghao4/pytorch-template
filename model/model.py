@@ -12,8 +12,8 @@ class MnistModel(BaseModel):
 
     Attributes
     ----------
-    num_classes : int, optional
-        Number of classes present (default is 10)
+    *layers : Module
+        All layers of the neural network.
 
     Methods
     -------

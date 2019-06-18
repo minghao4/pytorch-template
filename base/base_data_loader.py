@@ -13,23 +13,26 @@ class BaseDataLoader(DataLoader):
 
     Attributes
     ----------
-    dataset : torch.utils.data.Dataset
-        Training data.
+    batch_idx : int
+        Current batch index.
 
-    batch_size : int
-        Number of samples per batch.
+    init_kwargs : dict of {str, Any}:
+        Torch `DataLoader` keyword arguments.
+
+    n_samples : int
+        Number of samples.
+
+    sampler : torch.utils.data.sampler.SubsetRandomSampler or None
+        Training set sampler for batches.
 
     shuffle : bool
         Whether or not to shuffle the loaded data.
 
+    valid_sampler : torch.utils.data.sampler.SubsetRandomSampler or None
+        Validation set sampler for batches.
+
     validation_split : float or int
         The split proportion or the exact number of samples of the validation set.
-
-    num_workers : int
-        Number of subprocesses to use for data loading.
-
-    collate_fn: typing.Callable, optional
-        A function to merge a list of samples to form a mini-batch (default is default_collate).
 
     Methods
     -------

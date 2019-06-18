@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from logging import Logger
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, NoReturn, Tuple, Union
 
 from numpy import inf
 import torch
@@ -19,8 +19,17 @@ class BaseTrainer:
 
     Attributes
     ----------
-    model : torch.nn.Module
-        The model.
+    config : parse_config.ConfigParser
+        The config parsing object.
+
+    device : torch.device
+        The device the model will be trained on.
+
+    epochs : int
+        Number of epochs to train over.
+
+    logger : logging.Logger
+        Logging object.
 
     loss_fn : callable
         Loss function.
@@ -34,18 +43,32 @@ class BaseTrainer:
     metric_args : list of dict of {str, Any}
         List of keyword arguments of the metric functions, matched by index.
 
+    mnt_best : float
+        Current best recorded metric.
+
+    mnt_mode : str
+        What to monitor ("off", "max", or "min")
+
+    model : torch.nn.Module
+        The model.
+
+    monitor : str
+        Whether or not to monitor metrics (for early stopping).
+
     optimizer : torch.optimizer.Optimizer
         The optimizer.
 
-    config : parse_config.ConfigParser
-        The config parsing object.
+    save_periods : int
+        How often to save to a checkpoint.
+
+    writer : logging.TensorBoardWriter
+        Writer object for TensorBoard logging.
 
     Methods
     -------
     train()
         Full training logic.
     """
-
     def __init__(
         self,
         model: Module,
@@ -56,11 +79,12 @@ class BaseTrainer:
         optimizer: Optimizer,
         config: ConfigParser,
     ):
+
         self.config: ConfigParser = config
         self.logger: Logger = config.get_logger("trainer", config["trainer"]["verbosity"])
 
         # Setup GPU device if available.
-        self.device: str
+        self.device: device
         device_ids: List[int]
         self.device, device_ids = self._prepare_device(config["n_gpu"])
 
@@ -108,10 +132,8 @@ class BaseTrainer:
             self._resume_checkpoint(config.resume)
 
     @abstractmethod
-    def _train_epoch(self, epoch: int) -> dict:
+    def _train_epoch(self, epoch: int) -> Union[Dict[str, Any], NoReturn]:
         """
-        TODO: check if type-hinting is correct for abstractmethod.
-
         Training logic for an epoch. If not implemented in child class, raise `NotImplementedError`.
 
         Parameters
@@ -123,6 +145,11 @@ class BaseTrainer:
         -------
         dict
             A dictionary containing the logged information.
+
+        Raises
+        ------
+        NotImplementedError
+            If not implemented in child class.
         """
         raise NotImplementedError
 
