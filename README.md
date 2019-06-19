@@ -1,6 +1,8 @@
 # PyTorch Template Project
 PyTorch deep learning project made easy.
 
+This is a **fork** that has implemented type hinting and configurable loss and metric arguments.
+
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
@@ -33,7 +35,7 @@ PyTorch deep learning project made easy.
 <!-- /code_chunk_output -->
 
 ## Requirements
-* Python >= 3.5 (3.6 recommended)
+* Python >= 3.6
 * PyTorch >= 0.4
 * tqdm (Optional for `test.py`)
 * tensorboard >= 1.7.0 (Optional for TensorboardX) or tensorboard >= 1.14 (Optional for pytorch.utils.tensorboard)
@@ -87,7 +89,7 @@ PyTorch deep learning project made easy.
   │   ├── visualization.py
   │   ├── logger.py
   │   └── logger_config.json
-  │  
+  │
   └── utils/ - small utility functions
       ├── util.py
       └── ...
@@ -101,14 +103,14 @@ Try `python train.py -c config.json` to run code.
 Config files are in `.json` format:
 ```javascript
 {
-  "name": "Mnist_LeNet",        // training session name
-  "n_gpu": 1,                   // number of GPUs to use for training.
-  
+  "name": "Mnist_LeNet",               // training session name
+  "n_gpu": 1,                          // number of GPUs to use for training.
+
   "arch": {
-    "type": "MnistModel",       // name of model architecture to train
+    "type": "MnistModel",              // name of model architecture to train
     "args": {
 
-    }                
+    }
   },
   "data_loader": {
     "type": "MnistDataLoader",         // selecting data loader
@@ -128,14 +130,18 @@ Config files are in `.json` format:
       "amsgrad": true
     }
   },
-  "loss": "nll_loss",                  // loss
-  "metrics": [
-    "my_metric", "my_metric2"          // list of metrics to evaluate
-  ],                         
+  "loss": {
+    "type": "nll_loss",                // loss function
+    "args" : {}                        // loss args
+  }
+  "metrics": {                         // list of metrics to evaluate and their args
+    "my_metric": {},
+    "my_metric2": {}
+  },
   "lr_scheduler": {
-    "type": "StepLR",                   // learning rate scheduler
+    "type": "StepLR",                  // learning rate scheduler
     "args":{
-      "step_size": 50,          
+      "step_size": 50,
       "gamma": 0.1
     }
   },
@@ -144,10 +150,10 @@ Config files are in `.json` format:
     "save_dir": "saved/",              // checkpoints are saved in save_dir/models/name
     "save_freq": 1,                    // save checkpoints every save_freq epochs
     "verbosity": 2,                    // 0: quiet, 1: per epoch, 2: full
-  
+
     "monitor": "min val_loss"          // mode and metric for model performance monitoring. set 'off' to disable.
     "early_stop": 10	                 // number of epochs to wait before early stop. set 0 to disable.
-  
+
     "tensorboardX": true,              // enable tensorboardX visualization
   }
 }
@@ -186,7 +192,7 @@ Specify indices of available GPUs by cuda environmental variable.
 ### Project initialization
 Use the `new_project.py` script to make your new project directory with template files.
 `python new_project.py ../NewProject` then a new project folder named 'NewProject' will be made.
-This script will filter out unneccessary files like cache, git files or readme file. 
+This script will filter out unneccessary files like cache, git files or readme file.
 
 ### Custom CLI options
 
@@ -205,7 +211,7 @@ you can change some of them using CLI flags.
       # options added here can be modified by command line flags.
   ]
   ```
-`target` argument should be sequence of keys, which are used to access that option in the config dict. In this example, `target` 
+`target` argument should be sequence of keys, which are used to access that option in the config dict. In this example, `target`
 for the learning rate option is `('optimizer', 'args', 'lr')` because `config['optimizer']['args']['lr']` points to the learning rate.
 `python train.py -c config.json --bs 256` runs training with options given in `config.json` except for the `batch size`
 which is increased to 256 by command line options.
@@ -283,9 +289,12 @@ Custom loss functions can be implemented in 'model/loss.py'. Use them by changin
 #### Metrics
 Metric functions are located in 'model/metric.py'.
 
-You can monitor multiple metrics by providing a list in the configuration file, e.g.:
+You can monitor multiple metrics by providing the handles with the arguments in the configuration file, e.g.:
   ```json
-  "metrics": ["my_metric", "my_metric2"],
+  "metrics": {
+    "my_metric": {},
+    "my_metric2": {}
+  },
   ```
 
 ### Additional logging
@@ -296,7 +305,7 @@ If you have additional information to be logged, in `_train_epoch()` of your tra
   log = log.update(additional_log)
   return log
   ```
-  
+
 ### Testing
 You can test trained model by running `test.py` passing path to the trained checkpoint by `--resume` argument.
 
@@ -340,7 +349,7 @@ The template attempts to choose a writing module from a list of modules specifie
 
     Follow installation guide in [TensorboardX](https://github.com/lanpa/tensorboardX).
 
-2. **Run training** 
+2. **Run training**
 
     Set `tensorboard` option in config file to:
     Set the "tensorboard" entry in the config to:
@@ -351,7 +360,7 @@ The template attempts to choose a writing module from a list of modules specifie
     }
     ```
 
-3. **Open Tensorboard server** 
+3. **Open Tensorboard server**
 
     Type `tensorboard --logdir saved/log/` at the project root, then server will open at `http://localhost:6006`
 
@@ -361,7 +370,7 @@ The template attempts to choose a writing module from a list of modules specifie
 
     Must have Pytorch 1.1 installed and `tensorboard >= 1.14` (`pip install tb-nightly`).
 
-2. **Run training** 
+2. **Run training**
 
     Set the "tensorboard" entry in the config to:
     ```
@@ -371,13 +380,13 @@ The template attempts to choose a writing module from a list of modules specifie
     }
     ```
 
-3. **Open Tensorboard server** 
+3. **Open Tensorboard server**
 
     Same as above.
 
 By default, values of loss and metrics specified in config file, input images, and histogram of model parameters will be logged.
 If you need more visualizations, use `add_scalar('tag', data)`, `add_image('tag', image)`, etc in the `trainer._train_epoch` method.
-`add_something()` methods in this template are basically wrappers for those of `tensorboardX.SummaryWriter` and `torch.utils.tensorboard.SummaryWriter` modules. 
+`add_something()` methods in this template are basically wrappers for those of `tensorboardX.SummaryWriter` and `torch.utils.tensorboard.SummaryWriter` modules.
 
 **Note**: You don't have to specify current steps, since `WriterTensorboard` class defined at `logger/visualization.py` will track current steps.
 
@@ -404,3 +413,5 @@ This project is licensed under the MIT License. See  LICENSE for more details
 
 ## Acknowledgments
 This project is inspired by the project [Tensorflow-Project-Template](https://github.com/MrGemy95/Tensorflow-Project-Template) by [Mahmoud Gemy](https://github.com/MrGemy95)
+
+The original [pytorch-template](https://github.com/victoresque/pytorch-template) is by [Victor Huang](https://github.com/victoresque)
