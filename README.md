@@ -73,6 +73,9 @@ This is a **fork** that has implemented type hinting and configurable loss and m
   │
   ├── data/ - default directory for storing input data
   │
+  ├── datasets/ -  custom dataset objects go here
+  │   └── datasets.py
+  │
   ├── model/ - models, losses, and metrics
   │   ├── model.py
   │   ├── metric.py
@@ -108,9 +111,7 @@ Config files are in `.json` format:
 
   "arch": {
     "type": "MnistModel",              // name of model architecture to train
-    "args": {
-
-    }
+    "args": {}
   },
   "data_loader": {
     "type": "MnistDataLoader",         // selecting data loader
