@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, List, NoReturn, Tuple, Union
 
 from numpy import inf
 import torch
-from torch import device
 from torch.nn import DataParallel, Module
 from torch.optim import Optimizer
 
@@ -84,7 +83,7 @@ class BaseTrainer:
         self.logger: Logger = config.get_logger("trainer", config["trainer"]["verbosity"])
 
         # Setup GPU device if available.
-        self.device: device
+        self.device: torch.device
         device_ids: List[int]
         self.device, device_ids = self._prepare_device(config["n_gpu"])
 
@@ -249,7 +248,7 @@ class BaseTrainer:
             )
             n_gpu_use = n_gpu
 
-        device: device = device("cuda:0" if n_gpu_use > 0 else "cpu")
+        device: torch.device = torch.device("cuda:0" if n_gpu_use > 0 else "cpu")
         list_ids: List[str] = list(range(n_gpu_use))
         return device, list_ids
 
