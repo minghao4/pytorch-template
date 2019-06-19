@@ -1,6 +1,14 @@
-import argparse
+from argparse import ArgumentParser
 import collections
+from logging import Logger
+from typing import Any, Callable, Dict, Iterable, List, Optional
+
 import torch
+from torch import Tensor
+from torch.nn import Module
+from torch.optim import Optimizer
+from torch.utils.data import DataLoader
+
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
@@ -9,50 +17,74 @@ from parse_config import ConfigParser
 from trainer import Trainer
 
 
-def main(config):
-    logger = config.get_logger('train')
+def main(config: ConfigParser) -> None:
+    """
+    Main training function.
 
-    # setup data_loader instances
-    data_loader = config.initialize('data_loader', module_data)
-    valid_data_loader = data_loader.split_validation()
+    Parameters
+    ----------
+    config : parse_config.ConfigParser
+        Parsed configuration JSON file.
+    """
+    logger: Logger = config.get_logger("train")
 
-    # build model architecture, then print to console
-    model = config.initialize('arch', module_arch)
+    # Setup data_loader instances.
+    data_loader: DataLoader = config.initialize("data_loader", module_data)
+    valid_data_loader: Optional[DataLoader] = data_loader.split_validation()
+
+    # Build model architecture, then print to console.
+    model: Module = config.initialize("arch", module_arch)
     logger.info(model)
 
-    # get function handles of loss and metrics
-    loss = getattr(module_loss, config['loss'])
-    metrics = [getattr(module_metric, met) for met in config['metrics']]
+    # Get function handles of loss and metrics as well as args.
+    loss_fn: Callable = getattr(module_loss, config["loss"]["type"])
+    loss_args: Dict[str, Any] = config["loss"]["args"]
+    metric_fns: List[Callable] = [getattr(module_metric, met) for met in config["metrics"]]
+    metric_args: List[Dict[str, Any]] = [config["metrics"][met] for met in config["metrics"]]
 
-    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = config.initialize('optimizer', torch.optim, trainable_params)
+    # Build optimizer, learning rate scheduler.
+    # Delete every line containing lr_scheduler to disable scheduler.
+    trainable_params: Iterable[Tensor] = filter(lambda p: p.requires_grad, model.parameters())
+    optimizer: Optimizer = config.initialize("optimizer", torch.optim, trainable_params)
 
-    lr_scheduler = config.initialize('lr_scheduler', torch.optim.lr_scheduler, optimizer)
+    lr_scheduler: Optional = config.initialize("lr_scheduler", torch.optim.lr_scheduler, optimizer)
 
-    trainer = Trainer(model, loss, metrics, optimizer,
-                      config=config,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+    trainer: Trainer = Trainer(
+        model,
+        loss_fn,
+        loss_args,
+        metric_fns,
+        metric_args,
+        optimizer,
+        config=config,
+        data_loader=data_loader,
+        valid_data_loader=valid_data_loader,
+        lr_scheduler=lr_scheduler,
+    )
 
     trainer.train()
 
 
-if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')
-    args.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
+if __name__ == "__main__":
+    args: ArgumentParser = ArgumentParser(description="PyTorch Template")
+    args.add_argument(
+        "-c", "--config", default=None, type=str, help="config file path (default: None)"
+    )
+    args.add_argument(
+        "-r", "--resume", default=None, type=str, help="path to latest checkpoint (default: None)"
+    )
+    args.add_argument(
+        "-d", "--device", default=None, type=str, help="indices of GPUs to enable (default: all)"
+    )
 
-    # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
-    options = [
-        CustomArgs(['--lr', '--learning_rate'], type=float, target=('optimizer', 'args', 'lr')),
-        CustomArgs(['--bs', '--batch_size'], type=int, target=('data_loader', 'args', 'batch_size'))
+    # Custom cli options to modify configuration from default values given in json file.
+    CustomArgs = collections.namedtuple("CustomArgs", "flags type target")
+    options: List[CustomArgs] = [
+        CustomArgs(["--lr", "--learning_rate"], type=float, target=("optimizer", "args", "lr")),
+        CustomArgs(
+            ["--bs", "--batch_size"], type=int, target=("data_loader", "args", "batch_size")
+        ),
     ]
-    config = ConfigParser(args, options)
+
+    config: ConfigParser = ConfigParser(args, options)
     main(config)
