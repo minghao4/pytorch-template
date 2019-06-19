@@ -22,7 +22,7 @@ def ensure_dir(dirname: Union[Path, str]) -> None:
         dirname.mkdir(parents=True, exist_ok=False)
 
 
-def read_json(fname: Path) -> None:
+def read_json(fname: Path) -> Dict[str, Any]:
     """
     Reads JSON file.
 
@@ -30,6 +30,11 @@ def read_json(fname: Path) -> None:
     ----------
     fname : pathlib.Path
         File path to the JSON file in question.
+
+    Returns
+    -------
+    dict of {str, Any}
+        JSON contents.
     """
     handle: IO
     with fname.open("rt") as handle:
