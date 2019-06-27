@@ -7,10 +7,9 @@ from operator import getitem
 import os
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 from logger import setup_logging
-from train import CustomArgs
 from utils import read_json, write_json
 
 
@@ -49,11 +48,11 @@ class ConfigParser:
     def __init__(
         self,
         args: Union[ArgumentParser, Namespace],
-        options: Union[List[CustomArgs], str] = "",
+        options: Union[List[NamedTuple], str] = "",
         timestamp: bool = True,
     ) -> None:
         # Parse default and custom cli options.
-        opt: Union[CustomArgs, str]
+        opt: Union[NamedTuple, str]
         for opt in options:
             args.add_argument(*opt.flags, default=None, type=opt.type)
         args = args.parse_args()
@@ -164,7 +163,7 @@ class ConfigParser:
 
 # Helper functions used to update config dict with custom cli options.
 def _update_config(
-    config: Dict[str, Any], options: List[CustomArgs], args: Namespace
+    config: Dict[str, Any], options: List[NamedTuple], args: Namespace
 ) -> Dict[str, Any]:
     """
     Update the configuration dictionary with custom cli args.
@@ -185,7 +184,7 @@ def _update_config(
     config : dict of {str, Any}
         The updated configuration dictionary.
     """
-    opt: Union[CustomArgs, str]
+    opt: Union[NamedTuple, str]
     for opt in options:
         value: Optional = getattr(args, _get_opt_name(opt.flags))
         if value is not None:

@@ -163,15 +163,15 @@ class BaseTrainer:
             value: Union[float, List[float]]
             for key, value in result.items():
                 if key == "metrics":
-                    assert isinstance(value, List[float])
+                    assert isinstance(value, list)
                     i: int
                     mtr: str
-                    log.update({mtr.__name__: value[i] for i, mtr in enumerate(self.metrics)})
+                    log.update({mtr.__name__: value[i] for i, mtr in enumerate(self.metric_fns)})
 
                 elif key == "val_metrics":
-                    assert isinstance(value, List[float])
+                    assert isinstance(value, list)
                     log.update(
-                        {"val_" + mtr.__name__: value[i] for i, mtr in enumerate(self.metrics)}
+                        {"val_" + mtr.__name__: value[i] for i, mtr in enumerate(self.metric_fns)}
                     )
 
                 else:
@@ -219,7 +219,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
 
-    def _prepare_device(self, n_gpu_use: int) -> Tuple[device, List[int]]:
+    def _prepare_device(self, n_gpu_use: int) -> Tuple[torch.device, List[int]]:
         """
         Setup GPU device if available, move model into configured device.
 

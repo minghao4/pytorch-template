@@ -94,11 +94,11 @@ class Trainer(BaseTrainer):
         np.ndarray
             Array of all accumulated metrics.
         """
-        acc_metrics: ndarray = np.zeros(len(self.metrics))
+        acc_metrics: ndarray = np.zeros(len(self.metric_fns))
 
         i: int
         metric: Callable
-        for i, metric in enumerate(self.metrics):
+        for i, metric in enumerate(self.metric_fns):
             acc_metrics[i] += metric(output, target, **self.metric_args[i])
             self.writer.add_scalar("{}".format(metric.__name__), acc_metrics[i])
         return acc_metrics
@@ -129,7 +129,7 @@ class Trainer(BaseTrainer):
         self.model.train()
 
         total_loss: float = 0
-        total_metrics: ndarray = np.zeros(len(self.metrics))
+        total_metrics: ndarray = np.zeros(len(self.metric_fns))
 
         batch_idx: int
         data: Tensor
@@ -139,7 +139,7 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output: Tensor = self.model(data)
-            loss: Tensor = self.loss(output, target, **self.loss_args)
+            loss: Tensor = self.loss_fn(output, target, **self.loss_args)
             loss.backward()
             self.optimizer.step()
 
@@ -192,7 +192,7 @@ class Trainer(BaseTrainer):
         """
         self.model.eval()
         total_val_loss: int = 0
-        total_val_metrics: ndarray = np.zeros(len(self.metrics))
+        total_val_metrics: ndarray = np.zeros(len(self.metric_fns))
 
         # no_grad is turned on when not training.
         with torch.no_grad():
@@ -203,7 +203,7 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
 
                 output: Tensor = self.model(data)
-                loss: Tensor = self.loss(output, target, **self.loss_args)
+                loss: Tensor = self.loss_fn(output, target, **self.loss_args)
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, "valid")
                 self.writer.add_scalar("loss", loss.item())
