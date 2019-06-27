@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, NoReturn, Optional, Tuple, Union
 import numpy as np
 from numpy import ndarray
 from torch.utils.data import DataLoader, Dataset
-from torch.utils.data.dataloader import default_collate
+from torch.utils.data.dataloader import default_collate  # mypy bug? It's literally there.
 from torch.utils.data.sampler import SubsetRandomSampler
 
 
@@ -60,7 +60,7 @@ class BaseDataLoader(DataLoader):
         # is set to 0.
         self.sampler: Optional[SubsetRandomSampler]
         self.valid_sampler: Optional[SubsetRandomSampler]
-        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
+        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)  # mypy bug?
 
         # Keyword arguments for the torch `DataLoader`.
         self.init_kwargs: Dict[str, Any] = {
@@ -71,7 +71,7 @@ class BaseDataLoader(DataLoader):
             "num_workers": num_workers,
         }
 
-        super().__init__(sampler=self.sampler, **self.init_kwargs)
+        super().__init__(sampler=self.sampler, **self.init_kwargs)  # mypy bug?
 
     def _split_sampler(
         self, split: Union[float, int]

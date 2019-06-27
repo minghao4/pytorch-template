@@ -1,3 +1,5 @@
+from typing import NoReturn, Union
+
 from torch import Tensor
 import torch.nn as nn
 from torch.nn import Module
@@ -29,7 +31,7 @@ class MnistModel(BaseModel):
         self.fc1: Module = nn.Linear(320, 50)
         self.fc2: Module = nn.Linear(50, num_classes)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, *inputs: Tensor) -> Tensor:
         """
         Forward pass logic.
 
@@ -43,6 +45,7 @@ class MnistModel(BaseModel):
         torch.Tensor
             The model output tensor.
         """
+        x: Tensor = inputs[0]
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, 320)

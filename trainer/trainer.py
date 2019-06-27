@@ -5,7 +5,7 @@ from numpy import ndarray
 import torch
 from torch import Tensor
 from torch.nn import Module
-from torch.optim import Optimizer
+from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid
 
@@ -55,7 +55,7 @@ class Trainer(BaseTrainer):
         config: ConfigParser,
         data_loader: DataLoader,
         valid_data_loader: Optional[DataLoader] = None,
-        lr_scheduler: Optional = None,
+        lr_scheduler: Optional[Any] = None,
         len_epoch: Optional[int] = None,
     ) -> None:
 
@@ -74,7 +74,7 @@ class Trainer(BaseTrainer):
 
         self.valid_data_loader: Optional[DataLoader] = valid_data_loader
         self.do_validation: bool = self.valid_data_loader is not None
-        self.lr_scheduler: Optional = lr_scheduler
+        self.lr_scheduler: Optional[Any] = lr_scheduler
         self.log_step: int = int(np.sqrt(data_loader.batch_size))
 
     def _eval_metrics(self, output: Tensor, target: Tensor) -> ndarray:
@@ -191,7 +191,7 @@ class Trainer(BaseTrainer):
             The validation metrics in log must have the key 'val_metrics'.
         """
         self.model.eval()
-        total_val_loss: int = 0
+        total_val_loss: float = 0
         total_val_metrics: ndarray = np.zeros(len(self.metric_fns))
 
         # no_grad is turned on when not training.
@@ -199,6 +199,7 @@ class Trainer(BaseTrainer):
             batch_idx: int
             data: Tensor
             target: Tensor
+            assert self.valid_data_loader is not None  # make mypy happy
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
 
@@ -240,7 +241,7 @@ class Trainer(BaseTrainer):
 
         if hasattr(self.data_loader, "n_samples"):
             current: int = batch_idx * self.data_loader.batch_size
-            total: int = self.data_loader.n_samples
+            total: int = self.data_loader.n_samples  # mypy bug? The if-else literally guards
         else:
             current = batch_idx
             total = self.len_epoch

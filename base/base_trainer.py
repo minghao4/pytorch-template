@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, NoReturn, Tuple, Union
 from numpy import inf
 import torch
 from torch.nn import DataParallel, Module
-from torch.optim import Optimizer
+from torch.optim.optimizer import Optimizer
 
 from logger import TensorboardWriter
 from parse_config import ConfigParser
@@ -249,7 +249,7 @@ class BaseTrainer:
             n_gpu_use = n_gpu
 
         device: torch.device = torch.device("cuda:0" if n_gpu_use > 0 else "cpu")
-        list_ids: List[str] = list(range(n_gpu_use))
+        list_ids: List[int] = list(range(n_gpu_use))
         return device, list_ids
 
     def _save_checkpoint(self, epoch: int, save_best: bool = False) -> None:
@@ -282,7 +282,7 @@ class BaseTrainer:
             torch.save(state, best_path)
             self.logger.info("Saving current best: model_best.pth ...")
 
-    def _resume_checkpoint(self, resume_path: Path) -> None:
+    def _resume_checkpoint(self, resume_path: Union[Path, str]) -> None:
         """
         Resume from saved checkpoints.
 
@@ -291,7 +291,7 @@ class BaseTrainer:
         resume_path : pathlib.Path
             File path of the checkpoint to resume form.
         """
-        resume_path: str = str(resume_path)
+        resume_path = str(resume_path)
         self.logger.info("Loading checkpoint: {} ...".format(resume_path))
         checkpoint: dict = torch.load(resume_path)
 

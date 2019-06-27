@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+
 class ExampleDataset(Dataset):
     """
     Lipid dataset example class.
@@ -24,7 +25,7 @@ class ExampleDataset(Dataset):
         Phenotype data.
     """
 
-    def __init__(self, root: str, train: bool, transforms = None) -> None:
+    def __init__(self, root: str, train: bool, transforms=None) -> None:
         # File paths.
         phenotype_dir: str = os.path.basename(root)
         train_test: str = "test"
@@ -48,15 +49,10 @@ class ExampleDataset(Dataset):
         self.data_len: int = self.genotypes.shape[0]  # sample size
         self.feats: int = self.genotypes.shape[1]  # number of encoded features
 
-
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         X: torch.Tensor = self.genotypes[idx]
         y: torch.Tensor = self.phenotypes[idx]
         return (X, y)
 
-
     def __len__(self) -> int:
         return self.data_len
-
-
-
