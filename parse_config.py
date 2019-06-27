@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+import collections
 from datetime import datetime
 from functools import reduce
 import logging
@@ -11,6 +12,9 @@ from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 from logger import setup_logging
 from utils import read_json, write_json
+
+
+CustomArgs = collections.namedtuple("CustomArgs", "flags type target")
 
 
 class ConfigParser:
@@ -48,13 +52,15 @@ class ConfigParser:
     def __init__(
         self,
         args: Union[ArgumentParser, Namespace],
-        options: Union[List[NamedTuple], str] = "",
-        timestamp: bool = True,
+        options: Union[List[CustomArgs], str] = "",
+        timestamp: Union[bool, str] = True,
     ) -> None:
         # Parse default and custom cli options.
-        opt: Union[NamedTuple, str]
-        for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type)
+        if not isinstance(options, str):
+            opt: CustomArgs
+            for opt in options:
+                args.add_argument(*opt.flags, default=None, type=opt.type)
+
         args = args.parse_args()
 
         if args.device:
@@ -76,7 +82,7 @@ class ConfigParser:
 
         # set save_dir where trained model and log will be saved.
         save_dir: Path = Path(self.config["trainer"]["save_dir"])
-        timestamp: str = datetime.now().strftime(r"%m%d_%H%M%S") if timestamp else ""
+        timestamp = datetime.now().strftime(r"%m%d_%H%M%S") if timestamp else ""
 
         exper_name: str = self.config["name"]
         self._save_dir: Path = save_dir / "models" / exper_name / timestamp
@@ -163,7 +169,7 @@ class ConfigParser:
 
 # Helper functions used to update config dict with custom cli options.
 def _update_config(
-    config: Dict[str, Any], options: List[NamedTuple], args: Namespace
+    config: Dict[str, Any], options: Union[List[CustomArgs], str], args: Namespace
 ) -> Dict[str, Any]:
     """
     Update the configuration dictionary with custom cli args.
@@ -184,11 +190,12 @@ def _update_config(
     config : dict of {str, Any}
         The updated configuration dictionary.
     """
-    opt: Union[NamedTuple, str]
-    for opt in options:
-        value: Optional = getattr(args, _get_opt_name(opt.flags))
-        if value is not None:
-            _set_by_path(config, opt.target, value)
+    if not isinstance(options, str):
+        opt: CustomArgs
+        for opt in options:
+            value: Optional[Any] = getattr(args, _get_opt_name(opt.flags))
+            if value is not None:
+                _set_by_path(config, opt.target, value)
 
     return config
 

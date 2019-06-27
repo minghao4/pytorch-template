@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-import collections
 from logging import Logger
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
@@ -13,7 +12,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
-from parse_config import ConfigParser
+from parse_config import ConfigParser, CustomArgs
 from trainer import Trainer
 
 
@@ -78,7 +77,6 @@ if __name__ == "__main__":
     )
 
     # Custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple("CustomArgs", "flags type target")
     options: List[CustomArgs] = [
         CustomArgs(["--lr", "--learning_rate"], type=float, target=("optimizer", "args", "lr")),
         CustomArgs(
